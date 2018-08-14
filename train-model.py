@@ -108,6 +108,7 @@ data_loader_valid = DataLoader(file_paths_valid, labels_valid,
                             transforms=[])
 
 dataloaders = {'train': data_loader_train, 'test': data_loader_valid}
+dataset_sizes = {phase: dataloaders[phase].shape[0] for phase in dataloaders}
 
 # for inputs, labels in dataloaders['train']:
 #     [imshow(i) for i in apply_random_augmentation(inputs)]
@@ -142,16 +143,13 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
             for data in dataloaders[phase].get_data():
                 inputs, labels = data
 
-                inputs = torch.tensor(inputs)
-                labels = torch.tensor(labels)
+                inputs = torch.tensor(inputs).view(-1, 3, 224, 224).type_as(torch.FloatTensor())
+                labels = torch.tensor(labels).type_as(torch.LongTensor())
 
                 labels = labels.view(-1)
                 inputs, labels = Variable(inputs), Variable(labels)
 
                 optimizer.zero_grad()
-
-                print(inputs.shape)
-                print(labels.shape)
 
                 outputs = model(inputs)
                 _, preds = torch.max(outputs.data, 1)

@@ -201,7 +201,7 @@ def add_fc_layer(graph, bottleneck_tensor, labels):
 
             # Create a scheduler to multiply learning rate by 0.9 every 10 steps
             scheduler = tf.train.exponential_decay(LEARNING_RATE, global_step,
-                                                       100000, 0.96, staircase=True)
+                                                       2000, 0.96, staircase=True)
 
             # Create optimizer (gradient descent) and have it minimize the loss 
             optimizer = tf.train.GradientDescentOptimizer(scheduler)

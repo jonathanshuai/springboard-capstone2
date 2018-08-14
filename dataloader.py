@@ -200,6 +200,7 @@ class DataLoader():
         self.transforms = np.array(transforms)
         self.n_transforms = len(transforms)
 
+        self.shape = [self.n_samples, *self.image_size, 3]
 
     def get_data(self, transforms=[]):
         # Get the bounds for the first batch
