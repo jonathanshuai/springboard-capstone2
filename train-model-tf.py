@@ -28,6 +28,7 @@ IMAGE_SIZE = 224
 BATCH_SIZE = 8
 N_EPOCHS = 500
 LEARNING_RATE = 1e-4
+DEBUG = False
 
 # Use resnet_v2_50 and we choose 'feature_vector' - the bottleneck part.
 # This will be loaded into a hub.ModuleSpec - a pretrained model provided by tfhub.
@@ -231,7 +232,8 @@ train_step, loss, accuracy, summary, prediction = add_fc_layer(graph, bottleneck
 print("Beginning training...")
 # Start a session with the graph we created
 with tf.Session(graph=graph) as session:
-    session = tf_debug.LocalCLIDebugWrapperSession(session)
+    if DEBUG:
+        session = tf_debug.LocalCLIDebugWrapperSession(session)
 
     # Initialize all weights: for the module to their pretrained values,
     # and for the newly added retraining layer to random initial values.
