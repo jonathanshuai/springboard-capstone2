@@ -31,145 +31,83 @@ import os
 import copy
 
 import cv2
-import PIL.Image
 
-data_dir = './database/cropped'
-data_transforms = {
-    'train': transforms.Compose([
-        transforms.Resize(224),
-        transforms.ToTensor()
-    ]),
-    'test': transforms.Compose([
-        transforms.Resize(224),
-        transforms.ToTensor()
-    ]),
-}
+import dataloader
+from dataloader import DataLoader
 
-# Read the dataset into data loaders
-image_dataset = datasets.ImageFolder(data_dir)
-image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x),
-                                            data_transforms[x])
-                  for x in ['train', 'test']}
+# Define run constants
+RUN_NAME = ""
+PATHS_FILE = 'path_labels.csv'
 
-dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=4,
-                                                shuffle=True, num_workers=0)
-                for x in ['train', 'test']}
+IMAGE_SIZE = 224
+BATCH_SIZE = 8
+N_EPOCHS = 70
+LEARNING_RATE = 1e-4
 
-
-dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'test']}
-
-
-
-# Create the label dictionary from list of food items
+# Load data...
+# Read in item names 
 with open('food-items.txt') as f:
     item_names = f.read().splitlines()
 
+# Count the number of items
 n_classes = len(item_names)
-label_dict = dict(zip(range(0, n_classes), item_names))
 
+# Make dictionaries to turn labels into indicies and back
+label_dict_itos = dict(zip(range(0, n_classes), item_names))
+label_dict_stoi = dict(zip(item_names, range(0, n_classes)))
 
-def apply_blur(image, size=3, sig=0.788):
-    """Returns a image with random Gaussian blur applied.
-    image      (torch.tensor): Image in the form of pytorch tensor to apply blur to.
-    
-    size                (int): Size for Gaussian blur.
+# Read csv 
+df = pd.read_csv(PATHS_FILE)
+# df = df[  (df['label'] == 'apples') 
+#         | (df['label'] == 'asparagus')
+#         | (df['label'] == 'avocado') 
+# #         | (df['label'] == 'bacon')
+#         ]
+# n_classes = 3
 
-    sig               (float): Maximum sig for Gaussian blur.
-    """
-    image = image.numpy()
-    size = (size, size)
-    image = cv2.GaussianBlur(image, size, sig, sig)
-    return torch.tensor(image)
+# Get file paths from df.
+file_paths = df['cropped_path'].values
 
+# Get labels
+labels = df['label'].apply(lambda x: label_dict_stoi[x]).values
 
-def apply_gauss_noise(image, mean=0, std=0.8):
-    """Returns a image with random Gaussian noise applied.
-    image      (torch.tensor): Image in the form of pytorch tensor to apply noise to.
-    
-    mean              (float): Mean for Gaussian noise.
+# Split into test/validation sets 
+(file_paths_train, file_paths_valid, 
+    labels_train, labels_valid)  = train_test_split(
+                                    file_paths,
+                                    labels,
+                                    stratify=labels,
+                                    test_size=0.2)
 
-    std               (float): Standard deviation for Gaussian noise.
-    """
-    image = image.numpy()
-    noise = np.random.normal(mean, std, image.shape)
-    image += noise.astype('uint8')
-    image = np.clip(image, 0, 1)
-    return torch.tensor(image)
+train_length = file_paths_train.shape[0]
+valid_length = file_paths_valid.shape[0]
 
-def apply_sp_noise(image, prob=0.05, sp_ratio=0.5):
-    """Returns a tensor with random salt and pepper noise applied.
-    image      (torch.tensor): Image in the form of pytorch tensor to apply noise to.
-    
-    p                 (float): Probability of adding either salt or pepper to a pixel.
-
-    sp_ratio          (float): Ratio between salt and pepper.
-    """
-    image = image.numpy()
-
-    salt_prob = prob * sp_ratio
-
-    for i in range(image.shape[1]):
-        for j in range(image.shape[2]):
-            random = np.random.random()
-            if random <= salt_prob:
-                image[:,i,j] = 1
-            elif random <= prob:
-                image[:,i,j] = 0 
-
-    return torch.tensor(image)
-
-
-# Decorate torchvision transforms to take tensors
-PIL_to_tensor = transforms.ToTensor()
-tensor_to_PIL = transforms.ToPILImage()
-
-def wrap_transform(transform):
-    def decorated(image):
-        return PIL_to_tensor(transform(tensor_to_PIL(image)))
-
-    return decorated
-
-
-apply_color_jitter = wrap_transform(transforms.ColorJitter(brightness=0.3,
-                         contrast=0.3, saturation=0.3, hue=0.05))
-
-apply_random_affine = wrap_transform(transforms.RandomAffine(degrees=45, 
-                        translate=(0.15, 0.15), scale=(0.85, 1.15), shear=10))
-
-apply_random_affine_large = wrap_transform(transforms.RandomAffine(degrees=90, 
-                        translate=(0.25, 0.25), scale=(0.75, 1.25), shear=20))
-
-# List of data augmentations to select from
-data_augmentations = [
-    apply_blur,
-    apply_gauss_noise,
-    apply_sp_noise,
-    apply_color_jitter,
-    apply_random_affine,
-    apply_random_affine_large
+# List transformations (these are defined in dataloader.py)
+transforms = [
+    (lambda x: x,                          {}),
+    (dataloader.apply_blur,                {}),
+    (dataloader.apply_brightness,          {}),
+    # (dataloader.apply_color_jitter,        {}),
+    (dataloader.apply_sp_noise,            {}),
+    (dataloader.apply_gauss_noise,         {}),
+    # (dataloader.apply_random_rotate,       {}),
+    # (dataloader.apply_random_translate,    {}),
+    # (dataloader.apply_random_crop_resize,  {}),
+    (dataloader.apply_affine,              {})
 ]
 
+# Create data loader (once again, defined in dataloader.py)
+data_loader_train = DataLoader(file_paths_train, labels_train, 
+                            batch_size=BATCH_SIZE, 
+                            image_size=(IMAGE_SIZE, IMAGE_SIZE), 
+                            transforms=transforms)
 
-n_augmentations = len(data_augmentations)
+data_loader_valid = DataLoader(file_paths_valid, labels_valid, 
+                            batch_size=BATCH_SIZE, 
+                            image_size=(IMAGE_SIZE, IMAGE_SIZE), 
+                            transforms=[])
 
-def apply_random_augmentation(inputs, p=0.8): 
-    transformed_tensors = []
-    for t in inputs:
-        if np.random.rand() <= p:
-            image = data_augmentations[int(np.random.rand() * n_augmentations)](t)
-            transformed_tensors.append(image)
-        else:
-            transformed_tensors.append(t)
-    return torch.stack(transformed_tensors)
-
-
-def imshow(inp, title=None, pause=0.5):
-    """Imshow for Tensor."""
-    inp = inp.numpy().transpose((1, 2, 0))
-    plt.imshow(inp)
-    plt.title(title)
-    plt.pause(pause)  # pause a bit so that plots are updated
-
+dataloaders = {'train': data_loader_train, 'test': data_loader_valid}
 
 # for inputs, labels in dataloaders['train']:
 #     [imshow(i) for i in apply_random_augmentation(inputs)]
@@ -201,16 +139,19 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
             running_loss = 0.0
             running_corrects = 0
 
-            for data in dataloaders[phase]:
+            for data in dataloaders[phase].get_data():
                 inputs, labels = data
 
-                if phase == 'train':
-                    inputs = apply_random_augmentation(inputs)
-                
+                inputs = torch.tensor(inputs)
+                labels = torch.tensor(labels)
+
                 labels = labels.view(-1)
                 inputs, labels = Variable(inputs), Variable(labels)
 
                 optimizer.zero_grad()
+
+                print(inputs.shape)
+                print(labels.shape)
 
                 outputs = model(inputs)
                 _, preds = torch.max(outputs.data, 1)
@@ -276,7 +217,7 @@ combined_model = Combined(resnet_model, n_classes)
 
 criterion = nn.CrossEntropyLoss()
 
-optimizer_conv = optim.SGD(combined_model.parameters(), lr=0.0001, 
+optimizer_conv = optim.SGD(combined_model.parameters(), lr=LEARNING_RATE, 
                                 momentum=0.9, weight_decay=0.001)
 
 # optimizer_conv = optim.Adam(combined_model.parameters(), lr=1e-3, 
@@ -284,10 +225,9 @@ optimizer_conv = optim.SGD(combined_model.parameters(), lr=0.0001,
 
 # Decrease learning rate by 0.1 every 7 epochs
 scheduler =  lr_scheduler.StepLR(optimizer_conv, step_size=4, gamma=0.1)
-# scheduler = None
 
 combined_model, train_loss_record, valid_loss_record, best_model_wts = train_model(combined_model, 
-                        criterion, optimizer_conv, scheduler, num_epochs=70)
+                        criterion, optimizer_conv, scheduler, num_epochs=N_EPOCHS)
 
 
 
@@ -320,22 +260,22 @@ print("Accuracy: {}".format(accuracy))
 print(group_accuracy)
 
 
-result_df[result_df['label'] == 'fish'][['label', 'guessed']]
-result_df[result_df['label'] == 'pinto_beans'][['label', 'guessed']]
-result_df[result_df['label'] == 'parmesan_cheese'][['label', 'guessed']]
+# result_df[result_df['label'] == 'fish'][['label', 'guessed']]
+# result_df[result_df['label'] == 'pinto_beans'][['label', 'guessed']]
+# result_df[result_df['label'] == 'parmesan_cheese'][['label', 'guessed']]
 
-def show_result(result_df, item):
-    for i, row in result_df[result_df['label'] == item].iterrows():
-        imshow(row['image'], title="Label: {}, Guessed: {}".format(row['label'], row['guessed']), pause=2.5)
+# def show_result(result_df, item):
+#     for i, row in result_df[result_df['label'] == item].iterrows():
+#         imshow(row['image'], title="Label: {}, Guessed: {}".format(row['label'], row['guessed']), pause=2.5)
 
-for item in group_accuracy.index[:8]:
-    show_result(result_df, item)
+# for item in group_accuracy.index[:8]:
+#     show_result(result_df, item)
 
 
-for _, row in result_df.iterrows():
-    if not row['correct']:
-        imshow(row['image'], 
-            title="Label: {}, Guessed: {}".format(row['label'], row['guessed']), pause=2.5) 
+# for _, row in result_df.iterrows():
+#     if not row['correct']:
+#         imshow(row['image'], 
+#             title="Label: {}, Guessed: {}".format(row['label'], row['guessed']), pause=2.5) 
 
 
 # show_result(result_df, 'beef')

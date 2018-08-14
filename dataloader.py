@@ -1,8 +1,6 @@
 import os
 
 import numpy as np
-import tensorflow as tf
-import tensorflow_hub as hub
 
 import cv2
 from matplotlib import pyplot as plt
@@ -69,7 +67,7 @@ def apply_brightness(image, min_add=0, max_add=100):
     return cv2.cvtColor(image, cv2.COLOR_HSV2RGB)
 
 def apply_sp_noise(image, prob=0.05, sp_ratio=0.5):
-    """Returns a tensor with random salt and pepper noise applied.
+    """Returns a image with random salt and pepper noise applied.
     image     (numpy.ndarray): Image in the form of 3d array to apply transformation to.
     
     p                 (float): Probability of adding either salt or pepper to a pixel.
