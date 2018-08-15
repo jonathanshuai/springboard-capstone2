@@ -25,9 +25,9 @@ RUN_NAME = ""
 PATHS_FILE = 'path_labels.csv'
 
 IMAGE_SIZE = 224
-BATCH_SIZE = 8
+BATCH_SIZE = 12
 N_EPOCHS = 500
-LEARNING_RATE = 1e-4
+LEARNING_RATE = 1e-2
 DEBUG = False
 
 # Use resnet_v2_50 and we choose 'feature_vector' - the bottleneck part.
@@ -53,8 +53,8 @@ df = pd.read_csv(PATHS_FILE)
 #         | (df['label'] == 'asparagus')
 #         | (df['label'] == 'avocado') 
 # #         | (df['label'] == 'bacon')
-#         ]
-# n_classes = 3
+#        ]
+# n_classes = 2
 
 # Get file paths from df.
 file_paths = df['cropped_path'].values
@@ -80,15 +80,15 @@ valid_length = file_paths_valid.shape[0]
 # List transformations (these are defined in dataloader.py)
 transforms = [
     (lambda x: x,                          {}),
-    # (dataloader.apply_blur,                {}),
-    # (dataloader.apply_brightness,          {}),
-    # (dataloader.apply_color_jitter,        {}),
-    # (dataloader.apply_sp_noise,            {}),
-    # (dataloader.apply_gauss_noise,         {}),
-    # (dataloader.apply_random_rotate,       {}),
-    # (dataloader.apply_random_translate,    {}),
-    # (dataloader.apply_random_crop_resize,  {}),
-    # (dataloader.apply_affine,              {})
+    (dataloader.apply_blur,                {}),
+    (dataloader.apply_brightness,          {}),
+    (dataloader.apply_color_jitter,        {}),
+    (dataloader.apply_sp_noise,            {}),
+    (dataloader.apply_gauss_noise,         {}),
+    (dataloader.apply_random_rotate,       {}),
+    (dataloader.apply_random_translate,    {}),
+    (dataloader.apply_random_crop_resize,  {}),
+    (dataloader.apply_affine,              {})
 ]
 
 # Create data loader (once again, defined in dataloader.py)
@@ -201,7 +201,7 @@ def add_fc_layer(graph, bottleneck_tensor, labels):
 
             # Create a scheduler to multiply learning rate by 0.9 every 10 steps
             scheduler = tf.train.exponential_decay(LEARNING_RATE, global_step,
-                                                       4 * train_length, 0.9, staircase=True)
+                                                       8 * train_length, 0.9, staircase=True)
 
             # Create optimizer (gradient descent) and have it minimize the loss 
             optimizer = tf.train.GradientDescentOptimizer(scheduler)
