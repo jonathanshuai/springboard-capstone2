@@ -79,7 +79,7 @@ valid_length = file_paths_valid.shape[0]
 
 # List transformations (these are defined in dataloader.py)
 transforms = [
-    # (lambda x: x,                          {}),
+    (lambda x: x,                          {}),
     # (dataloader.apply_blur,                {}),
     # (dataloader.apply_brightness,          {}),
     # (dataloader.apply_color_jitter,        {}),
@@ -135,8 +135,8 @@ def create_module_graph(graph, module_spec, inputs):
     # We can create session out of this graph later using tf.Session(graph=graph)
     # with tf.Graph().as_default() as graph:
     with graph.as_default():
-        # base_model = hub.Module(module_spec, trainable=True, tags={'train'})
-        base_model = hub.Module(module_spec)
+        base_model = hub.Module(module_spec, trainable=True, tags={'train'})
+        # base_model = hub.Module(module_spec)
         bottleneck_tensor = base_model(inputs)
         tf.summary.image('input_image', inputs)
         # tf.summary.histogram('bottleneck_tensor', bottleneck_tensor)
