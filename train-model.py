@@ -41,7 +41,7 @@ PATHS_FILE = 'path_labels.csv'
 
 IMAGE_SIZE = 224
 BATCH_SIZE = 8
-N_EPOCHS = 70
+N_EPOCHS = 280
 LEARNING_RATE = 1e-4
 
 # Load data...
@@ -85,15 +85,15 @@ valid_length = file_paths_valid.shape[0]
 # List transformations (these are defined in dataloader.py)
 transforms = [
     (lambda x: x,                          {}),
-    (dataloader.apply_blur,                {}),
-    (dataloader.apply_brightness,          {}),
+    # (dataloader.apply_blur,                {}),
+    # (dataloader.apply_brightness,          {}),
     # (dataloader.apply_color_jitter,        {}),
-    (dataloader.apply_sp_noise,            {}),
-    (dataloader.apply_gauss_noise,         {}),
+    # (dataloader.apply_sp_noise,            {}),
+    # (dataloader.apply_gauss_noise,         {}),
     # (dataloader.apply_random_rotate,       {}),
     # (dataloader.apply_random_translate,    {}),
     # (dataloader.apply_random_crop_resize,  {}),
-    (dataloader.apply_affine,              {})
+    # (dataloader.apply_affine,              {})
 ]
 
 # Create data loader (once again, defined in dataloader.py)
@@ -143,10 +143,13 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
             for data in dataloaders[phase].get_data():
                 inputs, labels = data
 
-                inputs = torch.tensor(inputs).view(-1, 3, 224, 224).type_as(torch.FloatTensor())
-                labels = torch.tensor(labels).type_as(torch.LongTensor())
+                # NOTE: IS THIS VALID TO CHANGE THE CHANNEL??? DOUBLE CHECK THIS
+                inputs = torch.tensor([[inp[:, :, 0], inp[:, :, 1], inp[:, :, 2]] for inp in inputs])\
+                    .type_as(torch.FloatTensor())
 
+                labels = torch.tensor(labels).type_as(torch.LongTensor())
                 labels = labels.view(-1)
+
                 inputs, labels = Variable(inputs), Variable(labels)
 
                 optimizer.zero_grad()
@@ -222,7 +225,7 @@ optimizer_conv = optim.SGD(combined_model.parameters(), lr=LEARNING_RATE,
 #                                 betas=(0.9, 0.999), weight_decay=0.001)
 
 # Decrease learning rate by 0.1 every 7 epochs
-scheduler =  lr_scheduler.StepLR(optimizer_conv, step_size=4, gamma=0.1)
+scheduler =  lr_scheduler.StepLR(optimizer_conv, step_size=8, gamma=0.1)
 
 combined_model, train_loss_record, valid_loss_record, best_model_wts = train_model(combined_model, 
                         criterion, optimizer_conv, scheduler, num_epochs=N_EPOCHS)

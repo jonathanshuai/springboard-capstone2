@@ -79,16 +79,16 @@ valid_length = file_paths_valid.shape[0]
 
 # List transformations (these are defined in dataloader.py)
 transforms = [
-    (lambda x: x,                          {}),
-    (dataloader.apply_blur,                {}),
-    (dataloader.apply_brightness,          {}),
+    # (lambda x: x,                          {}),
+    # (dataloader.apply_blur,                {}),
+    # (dataloader.apply_brightness,          {}),
     # (dataloader.apply_color_jitter,        {}),
-    (dataloader.apply_sp_noise,            {}),
-    (dataloader.apply_gauss_noise,         {}),
+    # (dataloader.apply_sp_noise,            {}),
+    # (dataloader.apply_gauss_noise,         {}),
     # (dataloader.apply_random_rotate,       {}),
     # (dataloader.apply_random_translate,    {}),
     # (dataloader.apply_random_crop_resize,  {}),
-    (dataloader.apply_affine,              {})
+    # (dataloader.apply_affine,              {})
 ]
 
 # Create data loader (once again, defined in dataloader.py)
@@ -164,7 +164,7 @@ def add_fc_layer(graph, bottleneck_tensor, labels):
         # Name of fully connected layer as fc_layer    
         with tf.name_scope('fc_layer'):
             # Create regularizer
-            regularizer = tf.contrib.layers.l2_regularizer(scale=0.0005)
+            # regularizer = tf.contrib.layers.l2_regularizer(scale=0.0005)
             # logits is the output of dense layer output (w/ regularization) 
             with tf.name_scope('logits'):
                 logits = tf.layers.dense(
@@ -201,7 +201,7 @@ def add_fc_layer(graph, bottleneck_tensor, labels):
 
             # Create a scheduler to multiply learning rate by 0.9 every 10 steps
             scheduler = tf.train.exponential_decay(LEARNING_RATE, global_step,
-                                                       2000, 0.96, staircase=True)
+                                                       4 * train_length, 0.9, staircase=True)
 
             # Create optimizer (gradient descent) and have it minimize the loss 
             optimizer = tf.train.GradientDescentOptimizer(scheduler)
