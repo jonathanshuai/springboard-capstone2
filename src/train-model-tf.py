@@ -101,15 +101,6 @@ data_loader_valid = DataLoader(file_paths_valid, labels_valid,
                             image_size=(IMAGE_SIZE, IMAGE_SIZE), 
                             transforms=[])
 
-for images, labels in data_loader_train.get_data():
-    for i in range(BATCH_SIZE):
-        plt.imshow(images[i])
-        plt.title(labels[i])
-        plt.pause(0.2)
-
-
-stop
-
 # Create TensorFlow placeholders. 
 with tf.Graph().as_default() as graph:
     inputs = tf.placeholder(tf.float32, shape=[None, IMAGE_SIZE, IMAGE_SIZE, 3])
