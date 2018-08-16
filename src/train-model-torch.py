@@ -36,17 +36,27 @@ import dataloader
 from dataloader import DataLoader
 
 # Define run constants
-RUN_NAME = ""
-PATHS_FILE = 'path_labels.csv'
 
-IMAGE_SIZE = 224
-BATCH_SIZE = 8
-N_EPOCHS = 280
-LEARNING_RATE = 1e-4
+# csv created in preprocessing that where all the images are
+PATHS_FILE = '../database/cropped/path_labels.csv' 
+# file from raw data that tells all the class names (alphabetized)
+ITEM_NAMES_FILE = '../database/raw/food-items.txt'
+
+SEED = 17               # Seed for train_test_split 
+
+IMAGE_SIZE = 224        # Size of input images expected by base model
+BATCH_SIZE = 8          # Size of each batch 
+N_EPOCHS = 200          # Number of epochs to train for
+LEARNING_RATE = 1e-4    # Initial learning rate
+STEP_SIZE = 8           # Number of epochs before one step for exponential decay
+GAMMA = 0.1             # Amount to reduce learning rate by 
+
+RUN_NAME = "batch_size-{}n_epochs-{}learning_rate-{}step_size-{}gamma-{}"\
+    .format(BATCH_SIZE, N_EPOCHS, LEARNING_RATE, STEP_SIZE, GAMMA)
 
 # Load data...
 # Read in item names 
-with open('food-items.txt') as f:
+with open(ITEM_NAMES_FILE) as f:
     item_names = f.read().splitlines()
 
 # Count the number of items
@@ -58,12 +68,6 @@ label_dict_stoi = dict(zip(item_names, range(0, n_classes)))
 
 # Read csv 
 df = pd.read_csv(PATHS_FILE)
-# df = df[  (df['label'] == 'apples') 
-#         | (df['label'] == 'asparagus')
-#         | (df['label'] == 'avocado') 
-# #         | (df['label'] == 'bacon')
-#         ]
-# n_classes = 3
 
 # Get file paths from df.
 file_paths = df['cropped_path'].values
@@ -77,7 +81,8 @@ labels = df['label'].apply(lambda x: label_dict_stoi[x]).values
                                     file_paths,
                                     labels,
                                     stratify=labels,
-                                    test_size=0.2)
+                                    test_size=0.2,
+                                    random_state=SEED)
 
 train_length = file_paths_train.shape[0]
 valid_length = file_paths_valid.shape[0]
@@ -184,7 +189,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
 
         print()
         if (epoch % 10 == 0):
-            torch.save(model, './checkpoints/checkpoint' + str(epoch) + '.pt')
+            torch.save(model, '../checkpoints/checkpoint' + str(epoch) + '.pt')
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
@@ -225,7 +230,7 @@ optimizer_conv = optim.SGD(combined_model.parameters(), lr=LEARNING_RATE,
 #                                 betas=(0.9, 0.999), weight_decay=0.001)
 
 # Decrease learning rate by 0.1 every 7 epochs
-scheduler =  lr_scheduler.StepLR(optimizer_conv, step_size=8, gamma=0.1)
+scheduler =  lr_scheduler.StepLR(optimizer_conv, step_size=STEP_SIZE, gamma=GAMMA)
 
 combined_model, train_loss_record, valid_loss_record, best_model_wts = train_model(combined_model, 
                         criterion, optimizer_conv, scheduler, num_epochs=N_EPOCHS)

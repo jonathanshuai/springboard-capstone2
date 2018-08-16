@@ -21,14 +21,24 @@ from dataloader import DataLoader
 tf.logging.set_verbosity(tf.logging.ERROR) # Remove INFO
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-RUN_NAME = ""
-PATHS_FILE = 'path_labels.csv'
+# csv created in preprocessing that where all the images are
+PATHS_FILE = '../database/cropped/path_labels.csv' 
+# file from raw data that tells all the class names (alphabetized)
+ITEM_NAMES_FILE = '../database/raw/food-items.txt'
 
-IMAGE_SIZE = 224
-BATCH_SIZE = 8
-N_EPOCHS = 30
-LEARNING_RATE = 1e-2
-DEBUG = False
+SEED = 17               # Seed for train_test_split 
+
+IMAGE_SIZE = 224        # Size of input images expected by base model
+BATCH_SIZE = 8          # Size of each batch 
+N_EPOCHS = 80           # Number of epochs to train for
+LEARNING_RATE = 1e-2    # Initial learning rate
+STEP_SIZE = 4           # Number of epochs before one step for exponential decay
+GAMMA = 0.92            # Amount to scale learning rate by 
+
+DEBUG = False           # Whether to use tf_debug
+
+RUN_NAME = "batch_size-{}n_epochs-{}learning_rate-{}step_size-{}gamma-{}"\
+    .format(BATCH_SIZE, N_EPOCHS, LEARNING_RATE, STEP_SIZE, GAMMA)
 
 # Use resnet_v2_50 and we choose 'feature_vector' - the bottleneck part.
 # This will be loaded into a hub.ModuleSpec - a pretrained model provided by tfhub.
@@ -37,7 +47,7 @@ MODULE_URL = 'https://tfhub.dev/google/imagenet/resnet_v2_50/feature_vector/1'
 # Load data...
 
 # Read in item names 
-with open('food-items.txt') as f:
+with open(ITEM_NAMES_FILE) as f:
     item_names = f.read().splitlines()
 
 # Count the number of items
@@ -62,7 +72,8 @@ labels = df['label'].apply(lambda x: label_dict_stoi[x]).values
                                     file_paths,
                                     labels,
                                     stratify=labels,
-                                    test_size=0.2)
+                                    test_size=0.2,
+                                    random_state=SEED)
 
 train_length = file_paths_train.shape[0]
 valid_length = file_paths_valid.shape[0]
@@ -189,9 +200,9 @@ def add_fc_layer(graph, bottleneck_tensor, labels):
             # Start step at 0
             global_step = tf.Variable(0, trainable=False)
 
-            # Create a scheduler to multiply learning rate by 0.9 every 10 steps
+            # Create a scheduler to multiply learning rate by GAMMA every STEP_SIZE steps
             scheduler = tf.train.exponential_decay(LEARNING_RATE, global_step,
-                                                       4 * train_length, 0.92, staircase=True)
+                                STEP_SIZE * train_length, GAMMA, staircase=True)
 
             # Create optimizer (gradient descent) and have it minimize the loss 
             optimizer = tf.train.GradientDescentOptimizer(scheduler)
@@ -283,13 +294,13 @@ with tf.Session(graph=graph) as session:
         valid_writer.add_summary(valid_summary, epoch)
 
         if (epoch % 10 == 0):
-            save_path = saver.save(session, "logs/trained_model_{}.ckpt".format(epoch))
+            save_path = saver.save(session, "./checkpoints/trained_model_{}.ckpt".format(epoch))
             print("Checkpoint: {}".format(save_path))
 
     # Save the model
     print("Saving model...")
 
-    save_path = saver.save(session, "logs/trained_model_final.ckpt")
+    save_path = saver.save(session, "./checkpoints/trained_model_final.ckpt")
     print("Model Saved: {}".format(save_path))
     print("Training finished!")
 

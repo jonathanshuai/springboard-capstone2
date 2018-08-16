@@ -19,14 +19,14 @@ from sklearn.model_selection import train_test_split
 raw_paths = []
 
 # Iterate through 'database' directory recursively
-for root, directories, filenames in os.walk('../database'):
-    # Only get raw images
-    if (root.startswith('../database/raw')):
+for root, directories, filenames in os.walk('../database/raw'):
+    # Only get images (in subfolders)
+    if not root == '../database/raw':
         for filename in filenames: 
             raw_paths.append(os.path.join(root, filename))
 
 
-labels = [r.split('/')[2] for r in raw_paths]
+labels = [r.split('/')[3] for r in raw_paths]
 
 # Get the cropped path names: these are the paths we will be writing to
 cropped_paths = [s.replace('/raw', '/cropped') for s in raw_paths]
@@ -121,7 +121,7 @@ def preprocess(image_df, snake_params, augmentations=[]):
         # Print some progress information
         seconds_passed = int(time.time() - start_time)
         elapsed_time = str(datetime.timedelta(seconds=seconds_passed))
-        print("Image {} / {}... {}".format(i + 1, n_samples, elapsed_time))
+        print("Image {} / {}... {} - {}".format(i + 1, n_samples, elapsed_time, row['raw_path']))
 
         # Read in image
         image = cv2.imread(row['raw_path'])
@@ -150,4 +150,4 @@ snake_params = {
 preprocess(df, snake_params)
 
 df['label'] = labels
-df[['cropped_path', 'label']].to_csv('path_labels.csv', index=False)
+df[['cropped_path', 'label']].to_csv('../database/cropped/path_labels.csv', index=False)
