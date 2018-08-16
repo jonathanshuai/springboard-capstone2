@@ -25,8 +25,8 @@ RUN_NAME = ""
 PATHS_FILE = 'path_labels.csv'
 
 IMAGE_SIZE = 224
-BATCH_SIZE = 12
-N_EPOCHS = 500
+BATCH_SIZE = 8
+N_EPOCHS = 30
 LEARNING_RATE = 1e-2
 DEBUG = False
 
@@ -49,22 +49,12 @@ label_dict_stoi = dict(zip(item_names, range(0, n_classes)))
 
 # Read csv 
 df = pd.read_csv(PATHS_FILE)
-# df = df[  (df['label'] == 'apples') 
-#         | (df['label'] == 'asparagus')
-#         | (df['label'] == 'avocado') 
-# #         | (df['label'] == 'bacon')
-#        ]
-# n_classes = 2
 
 # Get file paths from df.
 file_paths = df['cropped_path'].values
 
 # Get labels
 labels = df['label'].apply(lambda x: label_dict_stoi[x]).values
-
-# # Use one-hot encoding
-# one_hot_labels = np.zeros((labels.shape[0], n_classes))
-# one_hot_labels[np.arange(labels.shape[0]), labels] = 1
 
 # Split into test/validation sets 
 (file_paths_train, file_paths_valid, 
@@ -201,7 +191,7 @@ def add_fc_layer(graph, bottleneck_tensor, labels):
 
             # Create a scheduler to multiply learning rate by 0.9 every 10 steps
             scheduler = tf.train.exponential_decay(LEARNING_RATE, global_step,
-                                                       8 * train_length, 0.9, staircase=True)
+                                                       4 * train_length, 0.92, staircase=True)
 
             # Create optimizer (gradient descent) and have it minimize the loss 
             optimizer = tf.train.GradientDescentOptimizer(scheduler)
@@ -221,10 +211,8 @@ def add_fc_layer(graph, bottleneck_tensor, labels):
 
     return train_step, loss, accuracy, summary, prediction
 
-
 graph, bottleneck_tensor = create_module_graph(graph, module_spec, inputs)
 train_step, loss, accuracy, summary, prediction = add_fc_layer(graph, bottleneck_tensor, labels)
-
 
 
 # Time to train the model
@@ -246,7 +234,8 @@ with tf.Session(graph=graph) as session:
 
     for epoch in range(N_EPOCHS):
 
-        print("Training epoch {}...".format(epoch))
+        print("Epoch {}".format(epoch))
+        print("Training...")
         # Training Phase
         running_train_loss = 0
         running_train_acc = 0
@@ -263,7 +252,7 @@ with tf.Session(graph=graph) as session:
         running_train_acc /= train_length
 
        
-        print("Validation epoch {}...".format(epoch))
+        print("Validation...")
         # Validation Phase
         running_valid_loss = 0
         running_valid_acc = 0
@@ -279,10 +268,7 @@ with tf.Session(graph=graph) as session:
 
         running_valid_acc /= valid_length
 
-
         # Print results of current epoch    
-        print("-" * 10)
-        print("Epoch {}".format(epoch))
         print("Train loss: {:.2f}\nTrain acc: {:.6f}".format(running_train_loss, 
                                                                 running_train_acc))
         print("Valid loss: {:.2f}\nValid acc: {:.6f}".format(running_valid_loss, 
@@ -293,6 +279,9 @@ with tf.Session(graph=graph) as session:
         train_writer.add_summary(train_summary, epoch)
         valid_writer.add_summary(valid_summary, epoch)
 
+        if (epoch % 10 == 0):
+            save_path = saver.save(session, "logs/trained_model.ckpt")
+
 
     print("Saving model...")
     # Save the model
@@ -302,7 +291,6 @@ with tf.Session(graph=graph) as session:
     save_path = saver.save(session, "logs/trained_model.ckpt")
     print("Model Saved: {}".format(save_path))
     print("Training finished!")
-
 
     images = []
     truths = []
