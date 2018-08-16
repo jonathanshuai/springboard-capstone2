@@ -22,7 +22,7 @@ tf.logging.set_verbosity(tf.logging.ERROR) # Remove INFO
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # csv created in preprocessing that where all the images are
-PATHS_FILE = '../database/cropped/path_labels.csv' 
+PATHS_FILE = '../database/cropped/path_labels.csv'
 # file from raw data that tells all the class names (alphabetized)
 ITEM_NAMES_FILE = '../database/raw/food-items.txt'
 
@@ -86,10 +86,8 @@ transforms = [
     (dataloader.apply_color_jitter,        {}),
     (dataloader.apply_sp_noise,            {}),
     (dataloader.apply_gauss_noise,         {}),
-    (dataloader.apply_random_rotate,       {}),
-    (dataloader.apply_random_translate,    {}),
-    (dataloader.apply_random_crop_resize,  {}),
-    (dataloader.apply_affine,              {})
+    (dataloader.apply_affine,              {}),
+    (lambda img: dataloader.apply_color_jitter(dataloader.apply_affine(img)), {})
 ]
 
 # Create data loader (once again, defined in dataloader.py)
@@ -103,6 +101,14 @@ data_loader_valid = DataLoader(file_paths_valid, labels_valid,
                             image_size=(IMAGE_SIZE, IMAGE_SIZE), 
                             transforms=[])
 
+for images, labels in data_loader_train.get_data():
+    for i in range(BATCH_SIZE):
+        plt.imshow(images[i])
+        plt.title(labels[i])
+        plt.pause(0.2)
+
+
+stop
 
 # Create TensorFlow placeholders. 
 with tf.Graph().as_default() as graph:
@@ -125,6 +131,7 @@ def variable_summaries(var):
     tf.summary.scalar('min', tf.reduce_min(var))
     # tf.summary.histogram('histogram', var)
 
+# Create module graph from module_spec
 def create_module_graph(graph, module_spec, inputs):
     """Create a tf.Graph and load the module into it
     """
@@ -155,23 +162,23 @@ def add_fc_layer(graph, bottleneck_tensor, labels):
 
     # Using the graph from bottleneck features...
     with graph.as_default():
-        # Make placeholder for bottleneck input and ground truth
-        with tf.name_scope('fc_input'):
-            fc_input = tf.placeholder_with_default(
-                bottleneck_tensor,
-                shape=[None, bottleneck_tensor_size],
-                name='fc_input_placeholder')
+        # # Make placeholder for bottleneck input and ground truth
+        # with tf.name_scope('fc_input'):
+        #     fc_input = tf.placeholder_with_default(
+        #         bottleneck_tensor,
+        #         shape=[None, bottleneck_tensor_size],
+        #         name='fc_input_placeholder')
 
         # Name of fully connected layer as fc_layer    
         with tf.name_scope('fc_layer'):
             # Create regularizer
-            # regularizer = tf.contrib.layers.l2_regularizer(scale=0.0005)
+            regularizer = tf.contrib.layers.l2_regularizer(scale=0.0005)
             # logits is the output of dense layer output (w/ regularization) 
             with tf.name_scope('logits'):
                 logits = tf.layers.dense(
                     inputs=bottleneck_tensor, 
                     units=n_classes,
-                    # kernel_regularizer=regularizer,
+                    kernel_regularizer=regularizer,
                     name="dense_layer"
                 )
                 logits_mean = tf.reduce_mean(logits)
