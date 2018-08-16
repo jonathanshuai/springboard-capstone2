@@ -223,6 +223,9 @@ with tf.Session(graph=graph) as session:
     if DEBUG:
         session = tf_debug.LocalCLIDebugWrapperSession(session)
 
+    # Create saver to make checkpoints and save final model
+    saver = tf.train.Saver()
+
     # Initialize all weights: for the module to their pretrained values,
     # and for the newly added retraining layer to random initial values.
     init = tf.global_variables_initializer()
@@ -280,15 +283,13 @@ with tf.Session(graph=graph) as session:
         valid_writer.add_summary(valid_summary, epoch)
 
         if (epoch % 10 == 0):
-            save_path = saver.save(session, "logs/trained_model.ckpt")
+            save_path = saver.save(session, "logs/trained_model_{}.ckpt".format(epoch))
+            print("Checkpoint: {}".format(save_path))
 
-
+    # Save the model
     print("Saving model...")
-    # Save the model
-    saver = tf.train.Saver()
 
-    # Save the model
-    save_path = saver.save(session, "logs/trained_model.ckpt")
+    save_path = saver.save(session, "logs/trained_model_final.ckpt")
     print("Model Saved: {}".format(save_path))
     print("Training finished!")
 
