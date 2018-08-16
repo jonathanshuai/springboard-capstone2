@@ -19,9 +19,9 @@ from sklearn.model_selection import train_test_split
 raw_paths = []
 
 # Iterate through 'database' directory recursively
-for root, directories, filenames in os.walk('database'):
+for root, directories, filenames in os.walk('../database'):
     # Only get raw images
-    if (root.startswith('database/raw')):
+    if (root.startswith('../database/raw')):
         for filename in filenames: 
             raw_paths.append(os.path.join(root, filename))
 

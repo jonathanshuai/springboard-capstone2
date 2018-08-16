@@ -1,4 +1,5 @@
 **/models
-**/database
+**/database/raw
+**/database/cropped
 **/__pycache__
 **/checkpoints
