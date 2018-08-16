@@ -115,9 +115,6 @@ data_loader_valid = DataLoader(file_paths_valid, labels_valid,
 dataloaders = {'train': data_loader_train, 'test': data_loader_valid}
 dataset_sizes = {phase: dataloaders[phase].shape[0] for phase in dataloaders}
 
-# for inputs, labels in dataloaders['train']:
-#     [imshow(i) for i in apply_random_augmentation(inputs)]
-
 
 def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
     since = time.time()
