@@ -116,7 +116,7 @@ def apply_random_rotate(image, degrees=180):
 
     return image
 
-def apply_random_translate(image, max_ratio=0.35):
+def apply_random_translate(image, max_ratio=0.30):
     """ Returns an image translated by a random amount.
     image     (numpy.ndarray): Image in the form of 3d array to apply transformation to.
     
@@ -158,6 +158,37 @@ def apply_random_crop_resize(image, min_ratio=0.20, max_ratio=0.40):
 
     return resized_image
 
+def apply_shear(image, degrees=20):
+    """ Returns an image sheared by a random degrees.
+    image     (numpy.ndarray): Image in the form of 3d array to apply transformation to.
+    
+    degrees           (float): Random shear amount will be in range [-degrees, +degrees].
+    """
+ 
+    width = image.shape[1]  
+    height = image.shape[0]  
+
+    x_center = width // 2
+    y_center = height // 2
+
+    to_rotate = 2 * np.random.random() * degrees - degrees
+    to_rotate_rad = (2 * np.pi / 360) * to_rotate
+    shift_amt = y_center * np.tan(to_rotate_rad)
+
+    pts1 = np.float32([ [0, y_center], 
+                        [width, y_center], 
+                        [x_center, height]])
+    
+    pts2 = np.float32([ [0, y_center], 
+                        [width, y_center], 
+                        [x_center + shift_amt, height]])    
+
+    M = cv2.getAffineTransform(pts1, pts2)
+
+    image = cv2.warpAffine(image, M, (width, height))
+
+    return image
+
 def apply_color_jitter(image, hue_range=[0, 10], 
     saturation_range=[0.8, 1.2], brightness_range=[0, 100]):
     """ Returns an image with random color jitter.
@@ -173,17 +204,19 @@ def apply_color_jitter(image, hue_range=[0, 10],
 
     return image
 
-def apply_affine(image, degrees=180, translate_ratio=0.3, crop_ratio=[0.10, 0.30]):
+def apply_affine(image, rotation=180, translate_ratio=0.3, crop_ratio=[0.0, 0.30], shear=20):
     """ Returns an image with random affine transformation.
     image              (numpy.ndarray): Image in the form of 3d array to be transformed.
     
-    degrees                      (int): Degrees in range [-degrees, degrees] to be rotated.
+    rotation                     (int): Degrees in range [-rotation, rotation] to be rotated.
     translate_ratio            (float): Ratio amount to be translated.
     crop_ratio        ([float, float]): Range [min, max] factor to be cropped out.
+    shear                        (int): Degrees in rante [-shear, shear] to apply shear with.
     """
+    image = apply_shear(image, shear)
     image = apply_random_translate(image, translate_ratio)
     image = apply_random_crop_resize(image, *crop_ratio)
-    image = apply_random_rotate(image, degrees)
+    image = apply_random_rotate(image, rotation)
 
     return image
 
