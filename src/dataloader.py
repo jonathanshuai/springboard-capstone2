@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 # Note: Only used cv2 here, but for other augmentations look here:
 # http://www.scipy-lectures.org/advanced/image_processing/
 
-def apply_blur(image, size=5, sig=0.788):
+def apply_blur(image, size=7, sig=0.788):
     """Returns a image with random Gaussian blur applied.
     image     (numpy.ndarray): Image in the form of 3d array to apply transformation to.
     
@@ -66,7 +66,7 @@ def apply_brightness(image, min_add=0, max_add=100):
  
     return cv2.cvtColor(image, cv2.COLOR_HSV2RGB)
 
-def apply_sp_noise(image, prob=0.05, sp_ratio=0.5):
+def apply_sp_noise(image, prob=0.20, sp_ratio=0.5):
     """Returns a image with random salt and pepper noise applied.
     image     (numpy.ndarray): Image in the form of 3d array to apply transformation to.
     
@@ -78,16 +78,17 @@ def apply_sp_noise(image, prob=0.05, sp_ratio=0.5):
 
     for i in range(image.shape[0]):
         for j in range(image.shape[1]):
-            random = np.random.random()
-            if random <= salt_prob:
-                image[i,j,:] = 1
-            elif random <= prob:
-                image[i,j,:] = 0 
+            for k in range(image.shape[2]):
+                random = np.random.random()
+                if random <= salt_prob:
+                    image[i,j,k] = 255
+                elif random <= prob:
+                    image[i,j,k] = 0 
 
     return image
 
 # Add some custom transformations for data augmentation
-def apply_gauss_noise(image, mean=0, std=1):
+def apply_gauss_noise(image, mean=0, std=30):
     """Returns a image with random Gaussian noise applied.
     image     (numpy.ndarray): Image in the form of 3d array to apply transformation to.
     
@@ -95,8 +96,9 @@ def apply_gauss_noise(image, mean=0, std=1):
 
     std               (float): Standard deviation for Gaussian noise.
     """
+
     noise = np.random.normal(mean, std, image.shape)
-    image += noise.astype('uint8')
+    image = np.add(image, noise.astype('int'))
     image = np.clip(image, 0, 255)
 
     return image
