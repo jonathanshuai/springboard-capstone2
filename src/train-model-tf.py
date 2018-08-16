@@ -162,13 +162,6 @@ def add_fc_layer(graph, bottleneck_tensor, labels):
 
     # Using the graph from bottleneck features...
     with graph.as_default():
-        # # Make placeholder for bottleneck input and ground truth
-        # with tf.name_scope('fc_input'):
-        #     fc_input = tf.placeholder_with_default(
-        #         bottleneck_tensor,
-        #         shape=[None, bottleneck_tensor_size],
-        #         name='fc_input_placeholder')
-
         # Name of fully connected layer as fc_layer    
         with tf.name_scope('fc_layer'):
             # Create regularizer
