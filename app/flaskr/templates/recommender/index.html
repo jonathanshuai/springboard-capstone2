@@ -1,0 +1,24 @@
+{% extends 'recommender.html' %}
+
+{% block title %}Recommender{% endblock %}
+
+{% block content %}
+    {% if imgsrc %}
+        <div id="recommender-wrapper">
+            <img src="{{ imgsrc }}"/>
+        </div>
+    {% else %}
+        <div id="recommender-wrapper">
+            <form method=post enctype=multipart/form-data>
+                <input type=file name=file>
+                <input type=submit value=Upload>
+            </form>
+            {% for message in get_flashed_messages() %}
+                <div class="error-flash">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}
+
+
+<!-- TODO: Get upload to work (into temp folders), as well figuring out how to use tensorflow or pytorch in FLask. Then deploy to Amazon or similar  -->

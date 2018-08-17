@@ -3,6 +3,8 @@
 {% block title %}Log In{% endblock %}
 
 {% block content %}
+    <div class="auth-form-inner">
+    <h1 class="title">Quick Recipe</h1>
     <form class="auth-form" method="post">
         <div class="form-group">
             <input class="form-input" placeholder="username" 
@@ -20,4 +22,5 @@
     {% for message in get_flashed_messages() %}
         <div class="error-flash">{{ message }}</div>
     {% endfor %}
+    </div>
 {% endblock %}

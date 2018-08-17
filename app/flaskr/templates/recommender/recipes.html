@@ -1,0 +1,19 @@
+{% extends 'recommender.html' %}
+
+{% block title %}Recipes{% endblock %}
+
+{% block content %}
+    <div id="recipe-wrapper">
+        <div id="recipe-header">
+            Hi {{ g.user['name'] }}! Here are the recipes you've saved:
+        </div>
+        {% for recipe in recipe_list %}
+            <li class="recipe-item">
+                <a href="{{ recipe['url'] }}">{{ recipe['title'] }}</a>
+            </li>
+        {% endfor %}
+        {% for message in get_flashed_messages() %}
+            <div class="error-flash">{{ message }}</div>
+        {% endfor %}
+    </div>
+{% endblock %}

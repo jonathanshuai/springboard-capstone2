@@ -3,6 +3,7 @@ import os
 from flask import Flask
 from . import db
 from . import auth
+from . import recommender
 
 def create_app(test_config=None):
     # Create and configure the Flask app
@@ -35,5 +36,9 @@ def create_app(test_config=None):
 
     # Register blueprint for authentication
     app.register_blueprint(auth.bp)
+
+    # Register the blueprint for recommender application (main app)
+    app.register_blueprint(recommender.bp)
+    app.add_url_rule('/', endpoint='index')
     
     return app
