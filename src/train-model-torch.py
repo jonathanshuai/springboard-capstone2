@@ -23,8 +23,6 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.optim import lr_scheduler
 from torch.autograd import Variable
-import torchvision
-from torchvision import datasets, models, transforms
 
 import time
 import os
@@ -46,7 +44,7 @@ SEED = 17               # Seed for train_test_split
 
 IMAGE_SIZE = 224        # Size of input images expected by base model
 BATCH_SIZE = 8          # Size of each batch 
-N_EPOCHS = 200          # Number of epochs to train for
+N_EPOCHS = 80           # Number of epochs to train for
 LEARNING_RATE = 1e-4    # Initial learning rate
 STEP_SIZE = 8           # Number of epochs before one step for exponential decay
 GAMMA = 0.1             # Amount to reduce learning rate by 
@@ -122,6 +120,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
     train_loss_record = []
     valid_loss_record = []
 
+    train_acc_record = []
+    valid_acc_record = []
+
     epoch_loss = 0
     epoch_acc = 0 
 
@@ -172,11 +173,11 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
                 phase, epoch_loss, epoch_acc))
 
             if phase == 'train':
-                logging.info('train: ' + str(epoch_loss))
                 train_loss_record.append(epoch_loss)
+                train_acc_record.append(epoch_acc)
             else:
-                logging.info('valid: ' + str(epoch_loss))
                 valid_loss_record.append(epoch_loss)
+                valid_acc_record.append(epoch_acc)
 
             if phase == 'test' and epoch_acc > best_acc:
                 best_acc = epoch_acc
@@ -184,14 +185,16 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
 
         print()
         if (epoch % 10 == 0):
-            torch.save(model, '../checkpoints/checkpoint' + str(epoch) + '.pt')
+            checkpoint_path = './checkpoints/checkpoint' + str(epoch) + '.pt'
+            torch.save(model, checkpoint_path)
+            print("Saved checkpoint: {}".format(checkpoint_path))
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
 
     model.load_state_dict(best_model_wts)
-    return model, train_loss_record, valid_loss_record, best_model_wts
+    return model, train_loss_record, valid_loss_record, train_acc_record, valid_acc_record
 
 
 class Combined(nn.Module):
@@ -251,8 +254,8 @@ result_df['truth_code'] = truth_hist
 result_df['preds_code'] = preds_hist
 result_df['image'] = inputs_hist
 result_df['correct'] = result_df['truth_code'] == result_df['preds_code']
-result_df['label'] = result_df['truth_code'].map(label_dict)
-result_df['guessed'] = result_df['preds_code'].map(label_dict)
+result_df['label'] = result_df['truth_code'].map(label_dict_itos)
+result_df['guessed'] = result_df['preds_code'].map(label_dict_itos)
 
 accuracy = result_df['correct'].mean()
 group_accuracy = result_df.groupby('label')['correct'].mean().sort_values()
