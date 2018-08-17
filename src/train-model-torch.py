@@ -90,15 +90,13 @@ valid_length = file_paths_valid.shape[0]
 # List transformations (these are defined in dataloader.py)
 transforms = [
     (lambda x: x,                          {}),
-    # (dataloader.apply_blur,                {}),
-    # (dataloader.apply_brightness,          {}),
-    # (dataloader.apply_color_jitter,        {}),
-    # (dataloader.apply_sp_noise,            {}),
-    # (dataloader.apply_gauss_noise,         {}),
-    # (dataloader.apply_random_rotate,       {}),
-    # (dataloader.apply_random_translate,    {}),
-    # (dataloader.apply_random_crop_resize,  {}),
-    # (dataloader.apply_affine,              {})
+    (dataloader.apply_blur,                {}),
+    (dataloader.apply_brightness,          {}),
+    (dataloader.apply_color_jitter,        {}),
+    (dataloader.apply_sp_noise,            {}),
+    (dataloader.apply_gauss_noise,         {}),
+    (dataloader.apply_affine,              {}),
+    (lambda img: dataloader.apply_color_jitter(dataloader.apply_affine(img)), {})
 ]
 
 # Create data loader (once again, defined in dataloader.py)
