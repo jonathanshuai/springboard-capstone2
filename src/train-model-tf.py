@@ -30,10 +30,10 @@ SEED = 17               # Seed for train_test_split
 
 IMAGE_SIZE = 224        # Size of input images expected by base model
 BATCH_SIZE = 8          # Size of each batch 
-N_EPOCHS = 80           # Number of epochs to train for
-LEARNING_RATE = 1e-2    # Initial learning rate
-STEP_SIZE = 4           # Number of epochs before one step for exponential decay
-GAMMA = 0.92            # Amount to scale learning rate by 
+N_EPOCHS = 160          # Number of epochs to train for
+LEARNING_RATE = 1e-4    # Initial learning rate
+STEP_SIZE = 8           # Number of epochs before one step for exponential decay
+GAMMA = 0.90            # Amount to scale learning rate by 
 
 DEBUG = False           # Whether to use tf_debug
 
