@@ -52,7 +52,7 @@ def apply_saturation(image, min_scale=0.8, max_scale=1.2):
     
     return cv2.cvtColor(image, cv2.COLOR_HSV2RGB)
 
-def apply_brightness(image, min_add=0, max_add=100):
+def apply_brightness(image, min_add=0, max_add=120):
     """Returns an image with random brightness add.
     image     (numpy.ndarray): Image in the form of 3d array to apply noise to.
 
