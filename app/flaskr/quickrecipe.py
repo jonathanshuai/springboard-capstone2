@@ -9,7 +9,7 @@ import torch
 from torch.nn import Softmax
 
 from matplotlib import pyplot as plt
-from definemodel import Combined
+from model_definition import Combined
 
 ITEM_NAMES_FILE = './models/food-items.txt'
 MODEL_FILE = './models/checkpoint70.pt'
@@ -50,7 +50,7 @@ def get_items(file_path):
 
 def sample_and_predict(image):
     """Make predictions on windows taken from image.
-    image         ()
+    image         (np.ndarray): Image to sample and make predictions on.
 
     """
     height = image.shape[0]
