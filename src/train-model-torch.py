@@ -9,8 +9,7 @@ import pandas as pd
 import scipy.optimize
 import scipy.stats
 
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 import matplotlib as mpl
@@ -23,6 +22,8 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.optim import lr_scheduler
 from torch.autograd import Variable
+
+from torchvision import models
 
 import time
 import os
