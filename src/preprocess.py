@@ -1,7 +1,5 @@
-import time
 import os
-import copy
-import datetime
+from tqdm import tqdm
 from contextlib import suppress
 
 import numpy as np
@@ -10,10 +8,9 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 import cv2
+import skimage.color
 import skimage.segmentation
 import skimage.filters
-
-from sklearn.model_selection import train_test_split
 
 # Get the paths to the raw image files and put them in a DataFrame
 raw_paths = []
@@ -34,6 +31,7 @@ cropped_paths = [s.replace('/raw', '/cropped') for s in raw_paths]
 
 # Create a DataFrame
 df = pd.DataFrame({'raw_path': raw_paths,
+                    'label': labels,
                     'cropped_path': cropped_paths
                     })
 
@@ -50,7 +48,7 @@ def write_image(image, path):
         os.makedirs(directory)
     cv2.imwrite(path, image)
 
-def crop_image(image, snake_params):
+def get_bounding_box(image, snake_params):
     """Returns a bounding box for a crop using active contour snakes algorithm.
     image      (numpy.ndarray): Image in the form of 3d array to find bounding box.
     
@@ -58,7 +56,7 @@ def crop_image(image, snake_params):
     """
 
     # apply grayscale and Gaussian blur; note a=2.5 or sig=0.4472
-    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    image_gray = skimage.color.rgb2gray(image)
     image_gray_blur = skimage.filters.gaussian(image_gray, 1.028)
 
     # Create an init snake (circle) and use active_contour to shrink it
@@ -111,23 +109,16 @@ def crop_image(image, snake_params):
     
     return bounding_box, side_length
 
-def preprocess(image_df, snake_params, augmentations=[]):
+def preprocess(image_df, snake_params):
     # Initialize some diagnostic information
     n_samples = image_df.shape[0]
-    start_time = time.time()
 
-
-    for i, row in image_df.iterrows():
-        # Print some progress information
-        seconds_passed = int(time.time() - start_time)
-        elapsed_time = str(datetime.timedelta(seconds=seconds_passed))
-        print("Image {} / {}... {} - {}".format(i + 1, n_samples, elapsed_time, row['raw_path']))
-
+    for i, row in tqdm(image_df.iterrows(), total=image_df.shape[0]):
         # Read in image
         image = cv2.imread(row['raw_path'])
 
         # Get bounding box
-        bounding_box, side_length = crop_image(image, snake_params)
+        bounding_box, side_length = get_bounding_box(image, snake_params)
 
         # Crop image 
         left, right, top, bottom = bounding_box
@@ -149,5 +140,4 @@ snake_params = {
 # Make crops from snakes and write to disk
 preprocess(df, snake_params)
 
-df['label'] = labels
 df[['cropped_path', 'label']].to_csv('../database/cropped/path_labels.csv', index=False)
