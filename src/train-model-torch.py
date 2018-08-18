@@ -2,32 +2,22 @@
 import time
 import os
 import copy
-import logging 
 
 import numpy as np
 import pandas as pd
-import scipy.optimize
-import scipy.stats
 
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
 
 import matplotlib as mpl
 from matplotlib import pyplot as plt
-import hedgeplot as hplt
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
 from torch.optim import lr_scheduler
 from torch.autograd import Variable
 
 from torchvision import models
-
-import time
-import os
-import copy
 
 import cv2
 
@@ -114,10 +104,9 @@ dataset_sizes = {phase: dataloaders[phase].shape[0] for phase in dataloaders}
 
 
 def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
-    since = time.time()
-
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
+
     train_loss_record = []
     valid_loss_record = []
 
@@ -184,14 +173,10 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
 
-            if (epoch % 10 == 0):
-                checkpoint_path = './checkpoints/checkpoint' + str(epoch) + '.pt'
-                torch.save(model, checkpoint_path)
-                print("Saved checkpoint: {}".format(checkpoint_path))
-
-    time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(
-        time_elapsed // 60, time_elapsed % 60))
+        if (epoch % 10 == 0):
+            checkpoint_path = './checkpoints/checkpoint' + str(epoch) + '.pt'
+            torch.save(model, checkpoint_path)
+            print("Saved checkpoint: {}".format(checkpoint_path))
 
     model.load_state_dict(best_model_wts)
     return model, train_loss_record, valid_loss_record, train_acc_record, valid_acc_record
@@ -200,9 +185,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
 class Combined(nn.Module):
     def __init__(self, base_model, n_classes):
         super(Combined, self).__init__()
+        # Remove the fc layer
         self.base_layer = nn.Sequential(*list(base_model.children())[:-1])
     
-        # Remove the fc layer
         # self.dropout = nn.Dropout(p=0.5)
         self.fc = nn.Linear(base_model.fc.in_features, n_classes)
     
@@ -235,9 +220,6 @@ scheduler =  lr_scheduler.StepLR(optimizer_conv, step_size=STEP_SIZE, gamma=GAMM
                         criterion, optimizer_conv, scheduler, num_epochs=N_EPOCHS)
 
 
-
-# combined_model = torch.load('./checkpoints/checkpoint20.pt')
-
 # Make results df so that we can figure out where we did well
 truth_hist = []
 preds_hist = []
@@ -263,29 +245,3 @@ group_accuracy = result_df.groupby('label')['correct'].mean().sort_values()
 
 print("Accuracy: {}".format(accuracy))
 print(group_accuracy)
-
-
-# result_df[result_df['label'] == 'fish'][['label', 'guessed']]
-# result_df[result_df['label'] == 'pinto_beans'][['label', 'guessed']]
-# result_df[result_df['label'] == 'parmesan_cheese'][['label', 'guessed']]
-
-# def show_result(result_df, item):
-#     for i, row in result_df[result_df['label'] == item].iterrows():
-#         imshow(row['image'], title="Label: {}, Guessed: {}".format(row['label'], row['guessed']), pause=2.5)
-
-# for item in group_accuracy.index[:8]:
-#     show_result(result_df, item)
-
-
-# for _, row in result_df.iterrows():
-#     if not row['correct']:
-#         imshow(row['image'], 
-#             title="Label: {}, Guessed: {}".format(row['label'], row['guessed']), pause=2.5) 
-
-
-# show_result(result_df, 'beef')
-# show_result(result_df, 'pork')
-# show_result(result_df, 'brown_onion')
-# show_result(result_df, 'chicken_leg')
-# show_result(result_df, 'mushroom')
-# show_result(result_df, 'cilantro')
