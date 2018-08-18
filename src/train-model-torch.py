@@ -144,7 +144,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
             for data in dataloaders[phase].get_data():
                 inputs, labels = data
 
-                # NOTE: IS THIS VALID TO CHANGE THE CHANNEL??? DOUBLE CHECK THIS
+                # Use pytorch standard [batch_size, channel, height, width]
                 inputs = torch.tensor([[inp[:, :, 0], inp[:, :, 1], inp[:, :, 2]] for inp in inputs])\
                     .type_as(torch.FloatTensor())
 
@@ -183,11 +183,10 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
 
-        print()
-        if (epoch % 10 == 0):
-            checkpoint_path = './checkpoints/checkpoint' + str(epoch) + '.pt'
-            torch.save(model, checkpoint_path)
-            print("Saved checkpoint: {}".format(checkpoint_path))
+            if (epoch % 10 == 0):
+                checkpoint_path = './checkpoints/checkpoint' + str(epoch) + '.pt'
+                torch.save(model, checkpoint_path)
+                print("Saved checkpoint: {}".format(checkpoint_path))
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
@@ -230,7 +229,8 @@ optimizer_conv = optim.SGD(combined_model.parameters(), lr=LEARNING_RATE,
 # Decrease learning rate by 0.1 every 7 epochs
 scheduler =  lr_scheduler.StepLR(optimizer_conv, step_size=STEP_SIZE, gamma=GAMMA)
 
-combined_model, train_loss_record, valid_loss_record, best_model_wts = train_model(combined_model, 
+(combined_model, train_loss_record, valid_loss_record, 
+    train_acc_record, valid_acc_record) = train_model(combined_model, 
                         criterion, optimizer_conv, scheduler, num_epochs=N_EPOCHS)
 
 
