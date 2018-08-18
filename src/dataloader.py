@@ -5,7 +5,6 @@ import numpy as np
 import cv2
 from matplotlib import pyplot as plt
 import pandas as pd
-from sklearn.model_selection import train_test_split
 
 # Define some data transformations
 # Note: Only used cv2 here, but for other augmentations look here:
@@ -206,14 +205,15 @@ def apply_color_jitter(image, hue_range=[0, 10],
 
     return image
 
-def apply_affine(image, rotation=180, translate_ratio=0.3, crop_ratio=[0.0, 0.30], shear=20):
+def apply_affine(image, rotation=180, translate_ratio=0.3, 
+    crop_ratio=[0.0, 0.30], shear=20):
     """ Returns an image with random affine transformation.
-    image              (numpy.ndarray): Image in the form of 3d array to be transformed.
+    image          (numpy.ndarray): Image in the form of 3d array to be transformed.
     
-    rotation                     (int): Degrees in range [-rotation, rotation] to be rotated.
-    translate_ratio            (float): Ratio amount to be translated.
-    crop_ratio        ([float, float]): Range [min, max] factor to be cropped out.
-    shear                        (int): Degrees in rante [-shear, shear] to apply shear with.
+    rotation                 (int): Degrees in range [-rotation, rotation] to be rotated.
+    translate_ratio        (float): Ratio amount to be translated.
+    crop_ratio    ([float, float]): Range [min, max] factor to be cropped out.
+    shear                    (int): Degrees in rante [-shear, shear] to apply shear with.
     """
     image = apply_shear(image, shear)
     image = apply_random_translate(image, translate_ratio)
