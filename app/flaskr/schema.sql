@@ -42,23 +42,3 @@ INSERT INTO users
     (username, password, name)
 VALUES
     ('jshuai', 'pbkdf2:sha256:50000$LZplPgoz$7721971950ec7085152a31b8ce22ff0b27c33fae11e1fdfd498d3f64391ea6b3', 'Jonathan');
-
-INSERT INTO recipes
-    (userid, url, title) 
-VALUES 
-    (1, "https://thewoksoflife.com/2016/07/grilled-tandoori-chicken/", "Tandoori Chicken");
-
-INSERT INTO recipes
-    (userid, url, title) 
-VALUES 
-    (1, "https://asianinspirations.com.au/recipe/braised-pork-belly-mao-style", "Pork Belly");
-
-INSERT INTO recipes
-    (userid, url, title) 
-VALUES 
-    (1, "https://www.youtube.com/watch?v=in-c8KE0d8k", "Chicken Cordon Bleu");
-
-INSERT INTO recipes
-    (userid, url, title) 
-VALUES 
-    (1, "https://www.bonappetit.com/recipe/chimichurri-sauce-2", "Chimichurri Sauce");
