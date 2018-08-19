@@ -2,6 +2,8 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
+import torch
+
 class TransferModel(nn.Module):
     def __init__(self, base_model, n_classes):
         super(TransferModel, self).__init__()
