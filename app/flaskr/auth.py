@@ -7,7 +7,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from flaskr.db import get_db
 
-bp = Blueprint('auth', __name__, url_prefix='/auth')
+bp = Blueprint('auth', __name__)
 
 # Copied from flask tutorial, authentication
 @bp.route('/register', methods=('GET', 'POST'))
@@ -47,6 +47,7 @@ def register():
                 )
 
             db.commit() # Commit the SQL query
+            
             # Move to login page
             return redirect(url_for('auth.login'))
 

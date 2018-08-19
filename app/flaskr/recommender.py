@@ -23,8 +23,8 @@ def allowed_file(filename):
 
 # allow image upload and run our application script w/ the image
 @bp.route('/', methods=('GET', 'POST'))
+@login_required
 def index():
-    
     # Get reference to database
     db = get_db()
 
@@ -32,7 +32,7 @@ def index():
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
-            flash('No file part')
+            flash('No file was chosen!')
             return redirect(request.url)
         file = request.files['file']
         
@@ -65,17 +65,22 @@ def index():
             
             # Return the restrictions w/ their names and values as tuples in a list
             option_names = restrictions.keys()
-            option_values = map(lambda x: "checked" if x == 1 else "", tuple(restrictions))
+            option_values = list(restrictions)
             options = list(zip(option_names, option_values))[2:] # Remove id and userid
 
             # Blocking call to neural network and recipe api 
-            quickrecipe.find_recipes(os.path.join(os.getcwd(), UPLOAD_FOLDER, filename), options)
+            ingredients, recipes = quickrecipe.find_recipes(
+                os.path.join(os.getcwd(), UPLOAD_FOLDER, filename), options)
 
-            return render_template('recommender/index.html', 
-                imgsrc=imgsrc)
+            ingredients = pred_str = ', '.join(list(ingredients))
+            if len(recipes) == 0:
+                recipes = [{'title': 'No recipes were found', 'url': '', 'image': ''}]
+            
+            return render_template('recommender/recommender.html', 
+                imgsrc=imgsrc, recipes=recipes, ingredients=ingredients)
 
     # db = get_db()
-    return render_template('recommender/index.html')
+    return render_template('recommender/recommender.html')
 
 
 @bp.route('/uploads/<filename>')
@@ -84,6 +89,7 @@ def uploaded_file(filename):
                                filename)
 
 @bp.route('/recipes')
+@login_required
 def recipes():
     # Get the recipes that match the userid
     db = get_db()
@@ -102,6 +108,7 @@ def recipes():
     return render_template('recommender/recipes.html', recipe_list=recipe_list)
 
 @bp.route('/settings', methods=('GET', 'POST'))
+@login_required
 def settings():
     # Get database
     db = get_db()
@@ -109,9 +116,7 @@ def settings():
     # If request is a POST, update the database
     if request.method == 'POST':
         # Get request values for each item
-        items = ['milk', 'eggs', 'nuts', 'peanuts', 'shellfish', 
-                'wheat', 'soy', 'fish', 'meat', 'pork', 'beef']
-        
+        items = ['vegan', 'vegetarian', 'peanut free']
         values = []
 
         for item in items:
@@ -128,17 +133,9 @@ def settings():
             UPDATE 
                 restrictions 
             SET 
-                milk=?, 
-                eggs=?, 
-                nuts=?, 
-                peanuts=?, 
-                shellfish=?, 
-                wheat=?, 
-                soy=?, 
-                fish=?, 
-                meat=?, 
-                pork=?, 
-                beef=?
+                vegan=?,
+                vegetarian=?,
+                peanut_free=?
             WHERE
                 userid = ?
             """, (*values, str(g.user['id']))
@@ -159,8 +156,12 @@ def settings():
     ).fetchone()
     
     # Return the restrictions w/ their names and values as tuples in a list
-    option_names = restrictions.keys()
+    option_names = [option_name.replace('_', ' ') for option_name in restrictions.keys()]
     option_values = map(lambda x: "checked" if x == 1 else "", tuple(restrictions))
     options = list(zip(option_names, option_values))[2:] # Remove id and userid
 
     return render_template('recommender/settings.html', options=options)
+
+@bp.route('/save', methods=['POST'])
+def save():
+    return "good"

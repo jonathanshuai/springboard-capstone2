@@ -12,17 +12,9 @@ CREATE TABLE users (
 CREATE TABLE restrictions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     userid INTEGER NOT NULL,
-    milk BIT NOT NULL,
-    eggs BIT NOT NULL,
-    nuts BIT NOT NULL,
-    peanuts BIT NOT NULL,
-    shellfish BIT NOT NULL,
-    wheat BIT NOT NULL,
-    soy BIT NOT NULL,
-    fish BIT NOT NULL,
-    meat BIT NOT NULL,
-    pork BIT NOT NULL,
-    beef BIT NOT NULL,
+    vegan BIT DEFAULT 0,
+    vegetarian BIT DEFAULT 0,
+    peanut_free BIT DEFAULT 0,
     FOREIGN KEY(userid) REFERENCES user (id)
 );
 
@@ -31,9 +23,20 @@ CREATE TABLE recipes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     userid INTEGER NOT NULL,
     url TEXT NOT NULL,
+    -- imgurl TEXT NOT NULL,
     title VARCHAR(255) NOT NULL,
     FOREIGN KEY(userid) REFERENCES user (id)
 );
+
+CREATE TRIGGER add_restriction
+    AFTER INSERT ON users FOR EACH ROW
+    BEGIN
+        INSERT INTO restrictions
+            (userid)
+        VALUES
+            (NEW.id);
+    END;
+
 
 INSERT INTO users
     (username, password, name)
@@ -59,11 +62,3 @@ INSERT INTO recipes
     (userid, url, title) 
 VALUES 
     (1, "https://www.bonappetit.com/recipe/chimichurri-sauce-2", "Chimichurri Sauce");
-
-INSERT INTO restrictions
-    (userid, milk, eggs, nuts, peanuts, shellfish, wheat, soy, fish, meat, pork, beef)
-VALUES
-    (1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0); 
-
-
-    
