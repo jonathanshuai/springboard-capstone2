@@ -5,12 +5,22 @@ from . import db
 from . import auth
 from . import recommender
 
+
+from dotenv import load_dotenv
+load_dotenv()
+
+ # prints mint
+
 def create_app(test_config=None):
     # Create and configure the Flask app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
         SECRET_KEY='dev',
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
+        DB_HOST=os.environ.get('DB_HOST'), 
+        DB_USER=os.environ.get('DB_USER'),
+        DB_PASS=os.environ.get('DB_PASS'),
+        DB_NAME=os.environ.get('DB_NAME')
     )
 
     if test_config is None:

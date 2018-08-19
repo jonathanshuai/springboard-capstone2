@@ -1,3 +1,7 @@
+# This module is used to provide an easy way to return images 
+# in mini-batches. There are also functions to transform each 
+# image to make train-time augmentation easy.
+
 import os
 
 import numpy as np
@@ -225,6 +229,18 @@ def apply_affine(image, rotation=180, translate_ratio=0.3,
 class DataLoader():
     def __init__(self, file_paths, labels, batch_size=16, 
                     image_size=(224,224), transforms=[]):
+        """ Initialize a DataLoader object. 
+        file_paths   (numpy.ndarray): List of file paths to the images to load.
+
+        labels       (numpy.ndarray): List of labels corresponding to file paths.
+        
+        batch_size             (int): Size of the mini-batch to return.
+
+        image_size       (int, int)): Desired size (height, width) of images returned.
+
+        transforms    ((numpy.ndarray) -> numpy.ndarray): Transformation function 
+        to apply to image. 
+        """
         self.X = file_paths
         self.y = labels
         self.n_samples = file_paths.shape[0]

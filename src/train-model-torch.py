@@ -1,6 +1,4 @@
 # skeleton file for neural network practice
-import time
-import os
 import copy
 
 import numpy as np
@@ -18,8 +16,6 @@ from torch.optim import lr_scheduler
 from torch.autograd import Variable
 
 from torchvision import models
-
-import cv2
 
 import dataloader
 from dataloader import DataLoader
@@ -73,9 +69,6 @@ labels = df['label'].apply(lambda x: label_dict_stoi[x]).values
                                     test_size=0.2,
                                     random_state=SEED)
 
-train_length = file_paths_train.shape[0]
-valid_length = file_paths_valid.shape[0]
-
 # List transformations (these are defined in dataloader.py)
 transforms = [
     (lambda x: x,                          {}),
@@ -99,7 +92,7 @@ data_loader_valid = DataLoader(file_paths_valid, labels_valid,
                             image_size=(IMAGE_SIZE, IMAGE_SIZE), 
                             transforms=[])
 
-dataloaders = {'train': data_loader_train, 'test': data_loader_valid}
+dataloaders = {'train': data_loader_train, 'valid': data_loader_valid}
 dataset_sizes = {phase: dataloaders[phase].shape[0] for phase in dataloaders}
 
 
@@ -120,7 +113,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
 
-        for phase in ['train', 'test']:
+        for phase in ['train', 'valid']:
             if phase == 'train':
                 if scheduler is not None:
                     scheduler.step(epoch_loss)
@@ -169,12 +162,12 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
                 valid_loss_record.append(epoch_loss)
                 valid_acc_record.append(epoch_acc)
 
-            if phase == 'test' and epoch_acc > best_acc:
+            if phase == 'valid' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
 
         if (epoch % 10 == 0):
-            checkpoint_path = './checkpoints/checkpoint' + str(epoch) + '.pt'
+            checkpoint_path = './checkpoints/checkpoint' + RUN_NAME + str(epoch) + '.pt'
             torch.save(model, checkpoint_path)
             print("Saved checkpoint: {}".format(checkpoint_path))
 
@@ -182,9 +175,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
     return model, train_loss_record, valid_loss_record, train_acc_record, valid_acc_record
 
 
-class Combined(nn.Module):
+class TransferModel(nn.Module):
     def __init__(self, base_model, n_classes):
-        super(Combined, self).__init__()
+        super(TransferModel, self).__init__()
         # Remove the fc layer
         self.base_layer = nn.Sequential(*list(base_model.children())[:-1])
     
@@ -202,21 +195,21 @@ class Combined(nn.Module):
 
 # Create a combined model with resnet as the base
 resnet_model = models.resnet50(pretrained=True)
-combined_model = Combined(resnet_model, n_classes)
+transfer_model = TransferModel(resnet_model, n_classes)
 
 criterion = nn.CrossEntropyLoss()
 
-optimizer_conv = optim.SGD(combined_model.parameters(), lr=LEARNING_RATE, 
+optimizer_conv = optim.SGD(transfer_model.parameters(), lr=LEARNING_RATE, 
                                 momentum=0.9, weight_decay=0.001)
 
-# optimizer_conv = optim.Adam(combined_model.parameters(), lr=1e-3, 
+# optimizer_conv = optim.Adam(transfer_model.parameters(), lr=1e-3, 
 #                                 betas=(0.9, 0.999), weight_decay=0.001)
 
 # Decrease learning rate by 0.1 every 7 epochs
 scheduler =  lr_scheduler.StepLR(optimizer_conv, step_size=STEP_SIZE, gamma=GAMMA)
 
-(combined_model, train_loss_record, valid_loss_record, 
-    train_acc_record, valid_acc_record) = train_model(combined_model, 
+(transfer_model, train_loss_record, valid_loss_record, 
+    train_acc_record, valid_acc_record) = train_model(transfer_model, 
                         criterion, optimizer_conv, scheduler, num_epochs=N_EPOCHS)
 
 
@@ -224,8 +217,8 @@ scheduler =  lr_scheduler.StepLR(optimizer_conv, step_size=STEP_SIZE, gamma=GAMM
 truth_hist = []
 preds_hist = []
 inputs_hist = []
-for inputs, labels in dataloaders['test']:
-    probs = combined_model(inputs)
+for inputs, labels in dataloaders['valid']:
+    probs = transfer_model(inputs)
     preds = np.argmax(probs.data.numpy(), axis=1)
     preds_hist.extend(preds)
     truth_hist.extend(labels.data.numpy())

@@ -3,3 +3,4 @@ database/cropped
 **/__pycache__
 **/checkpoints
 **/logs
+**.env

@@ -27,18 +27,3 @@ CREATE TABLE recipes (
     title VARCHAR(255) NOT NULL,
     FOREIGN KEY(userid) REFERENCES user (id)
 );
-
-CREATE TRIGGER add_restriction
-    AFTER INSERT ON users FOR EACH ROW
-    BEGIN
-        INSERT INTO restrictions
-            (userid)
-        VALUES
-            (NEW.id);
-    END;
-
-
-INSERT INTO users
-    (username, password, name)
-VALUES
-    ('jshuai', 'pbkdf2:sha256:50000$LZplPgoz$7721971950ec7085152a31b8ce22ff0b27c33fae11e1fdfd498d3f64391ea6b3', 'Jonathan');

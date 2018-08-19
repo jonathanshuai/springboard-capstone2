@@ -1,5 +1,7 @@
 import sqlite3
 
+import pymysql
+
 import click
 from flask import current_app, g
 from flask.cli import with_appcontext
@@ -7,11 +9,12 @@ from flask.cli import with_appcontext
 # Copied from flask tutorial, database connection
 def get_db():
     if 'db' not in g:
-        g.db = sqlite3.connect(
-            current_app.config['DATABASE'],
-            detect_types=sqlite3.PARSE_DECLTYPES
-        )
-        g.db.row_factory = sqlite3.Row
+        g.db = pymysql.connect(
+            host=current_app.config['DB_HOST'], 
+            user=current_app.config['DB_USER'],
+            passwd=current_app.config['DB_PASS'],
+            db=current_app.config['DB_NAME']
+        ).cursor(pymysql.cursors.DictCursor)
 
     return g.db
 
@@ -25,9 +28,45 @@ def close_db(e=None):
 def init_db():
     db = get_db()
 
-    with current_app.open_resource('schema.sql') as f:
-        db.executescript(f.read().decode('utf8'))
+    db.execute("DROP TABLE IF EXISTS users;")
+    db.execute("DROP TABLE IF EXISTS recipes;")
+    db.execute("DROP TABLE IF EXISTS restrictions;")
 
+    db.execute("""
+        CREATE TABLE users (
+            id INTEGER PRIMARY KEY AUTO_INCREMENT,
+            username VARCHAR(255) UNIQUE NOT NULL,
+            password VARCHAR(500) NOT NULL,
+            name VARCHAR(255)
+        );
+    """)
+    db.execute("""
+    CREATE TABLE restrictions (
+        id INTEGER PRIMARY KEY AUTO_INCREMENT,
+        userid INTEGER NOT NULL,
+        vegan BIT DEFAULT 0,
+        vegetarian BIT DEFAULT 0,
+        peanut_free BIT DEFAULT 0
+    );
+    """)
+    db.execute("""
+    CREATE TABLE recipes (
+        id INTEGER PRIMARY KEY AUTO_INCREMENT,
+        userid INTEGER NOT NULL,
+        url VARCHAR(500) NOT NULL,
+        title VARCHAR(255) NOT NULL
+    );
+    """)
+    db.execute("""
+    CREATE TRIGGER add_restriction
+        AFTER INSERT ON users FOR EACH ROW
+        BEGIN
+            INSERT INTO restrictions
+                (userid)
+            VALUES
+                    (NEW.id);
+    END;
+    """)
 
 @click.command('init-db')
 @with_appcontext
