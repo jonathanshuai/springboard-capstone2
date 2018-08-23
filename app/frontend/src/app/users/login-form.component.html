@@ -1,0 +1,26 @@
+<span></span>
+<div class="auth-wrapper">
+  <h1> Quick Recipe </h1>
+  <form [formGroup]="loginForm" (ngSubmit)="authenticateUser()">
+    
+    <input type="text" class="form-input" placeholder="username" formControlName="username" (keyup)="updateServerError($event)">
+    <input type="password" class="form-input" placeholder="password" formControlName="password">
+
+    <div *ngIf="username.invalid && (username.dirty || username.touched)" class="error-flash">
+      <div *ngIf="username.errors.required">
+        Please enter a username.
+      </div>
+    </div>
+
+    <div *ngIf="password.invalid && (password.dirty || password.touched)" class="error-flash">
+      <div *ngIf="password.errors.required">
+        Please enter a password.
+      </div>
+    </div>
+
+    <div class="error-flash" [hidden]="!serverError"> {{ serverErrorMessage }} </div>
+    <button class="login-btn" type="submit" [disabled]="!loginForm.valid">Login</button>
+  </form>
+
+  <div>Don't have an account? <a routerLink="/register">Register</a></div>
+</div>

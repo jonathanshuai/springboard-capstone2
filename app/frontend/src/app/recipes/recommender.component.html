@@ -1,0 +1,43 @@
+<span></span>
+<div id="recommender-wrapper">
+    <div id="upload-form-wrapper">
+   
+        <div *ngIf="sentImage === false">Upload Image:</div>
+     
+
+        <input *ngIf="sentImage === false" id="upload-icon" type="image" 
+        src="https://image.flaticon.com/icons/svg/69/69380.svg" width="80px"
+        (click)="showImageBrowseDlg()"/>
+     
+        <input *ngIf="sentImage === false" #uploadFile type="file" 
+        (change)="fileChange($event)" 
+        placeholder="Upload file" accept=".png,.jpg,.jpeg" style="display: none;">
+
+        <!-- show image         -->
+        <img id="uploaded-image" *ngIf="url != ''" [src]="url">
+
+        <!-- loading spinner -->
+        <p *ngIf="showLoading === true">Calling API, please wait...</p>
+        <mat-spinner *ngIf="showLoading === true" class="spinner"></mat-spinner>
+
+        <!-- ingredients and recipe list -->
+        <p *ngIf="ingredients != ''">Detected: {{ ingredients }}</p>
+        <div *ngFor="let recipe of recipesList" class="recipe">
+            <div class="recipe-btn-wrapper">
+              <div class="recipe-btn" 
+              (click)="toggleRecipe(recipe, $event)"
+              #{{recipe.title}}
+              >Save Recipe</div>
+            </div>
+            <div [style.background]="recipe.imgsrcsafe" class="recipe-image"></div> 
+
+            <div class="recipe-text-outer">
+                <div class="recipe-text-inner"><a [href]="recipe.url">{{ recipe.title }}</a> 
+                    <p> Uses your {{ recipe.uses }} </p></div>
+            </div>
+        </div> <!-- recipe -->
+
+    </div> <!-- upload-form-wrapper -->
+
+
+</div>

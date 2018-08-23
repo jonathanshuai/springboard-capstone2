@@ -1,0 +1,19 @@
+<div id="recipe-wrapper">
+  <div id="recipe-wrapper-inner">
+    <!-- recipe list -->
+    <div *ngFor="let recipe of recipesList" class="recipe">
+        <div class="recipe-btn-wrapper">
+          <div class="recipe-btn" 
+          (click)="toggleRecipe(recipe, $event)"
+          #{{recipe.title}}
+          >Delete Recipe</div>
+        </div>
+        <div [style.background]="recipe.imgsrcsafe" class="recipe-image"></div> 
+
+        <div class="recipe-text-outer">
+            <div class="recipe-text-inner"><a [href]="recipe.url">{{ recipe.title }}</a> 
+        </div>
+
+    </div> <!-- recipe --> 
+  </div> <!-- recipe --> 
+</div>
