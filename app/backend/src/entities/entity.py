@@ -1,12 +1,18 @@
+import configparser
+
 from datetime import datetime
 from sqlalchemy import create_engine, Column, String, Integer, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-db_url = 'localhost:3306'
-db_name = 'fiapp'
-db_user = 'root'
-db_password = 'password'
+config = configparser.ConfigParser()
+config.read('db.ini')
+
+db_url = config['DEFAULT']['DB_URL']
+db_name = config['DEFAULT']['DB_NAME']
+db_user = config['DEFAULT']['DB_USER']
+db_password = config['DEFAULT']['DB_PASSWORD']
+
 
 engine = create_engine(f'mysql://{db_user}:{db_password}@{db_url}/{db_name}')
 Session = sessionmaker(bind=engine)

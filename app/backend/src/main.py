@@ -13,14 +13,13 @@ from .entities.restriction import Restriction, RestrictionSchema
 from . import auth
 from . import recommender
 
-
 # creating the Flask application
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
 
-
 CORS(app)
 
+# Register blueprints
 app.register_blueprint(auth.bp)
 app.register_blueprint(recommender.bp)
 
