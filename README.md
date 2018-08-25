@@ -19,8 +19,8 @@ Here are the notebooks created in this project:
 The database was too big to be put on GitHub. Here's a link to download the zip from Google Drive (not uploaded yet).
 There are 52 classes of images with at least 20 images for each image with more samples for difficult classes (such as pasta). I chose some common ingredients as well as classes that could be difficult to distinguish (such as chicken leg, chicken breast, and chicken wing). The data came from two sources:
 
-For fruit images, there’s a publicly available [dataset](http://www.vicos.si/Downloads/FIDS30) from the Visual Cognitive Systems Laboratory which I collected the fruit images from. 
-For all other classes, I manually collected the data using Google image search. The links to where I found each image can be found in the links.txt file.
+1. For fruit images, there’s a publicly available [dataset](http://www.vicos.si/Downloads/FIDS30) from the Visual Cognitive Systems Laboratory which I collected the fruit images from. 
+2. For all other classes, I manually collected the data using Google image search. The links to where I found each image can be found in the links.txt file.
 
 These are the text files associated with the dataset.
 * food-items.txt - List of food classes in alphabetical order.
@@ -37,5 +37,5 @@ The web application was written with Angular for the front end and Flask for the
 Alternatively, if you want to see how it works, you can just watch the [short demo on YouTube](https://youtu.be/I17lKgTJVYI).
 
 ## Acknowledgments
-Thanks to my mentor Charlotte Werger for the idea and guiding me through the process.
-Thanks to the [Visual Cognitive Systems Laboratory](http://www.vicos.si/Main_Page) for providing some of the images used in the training.
+* Thanks to my mentor Charlotte Werger for the idea and guiding me through the process.
+* Thanks to the [Visual Cognitive Systems Laboratory](http://www.vicos.si/Main_Page) for providing some of the images used in the training.
