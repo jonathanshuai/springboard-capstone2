@@ -2,7 +2,9 @@
 
 This is a small deep learning project that uses PyTorch to recognize food objects.
 
-Food is one of the central aspects of our lives that computer software hasn't really revolutionized. There are a lot of problems that people have when it comes to food. There's a growing concern about healthy eating habits. We consume too much sugar, fats, and salt in our diets. There's also have a big problem with food waste - in America it's estimated that about 30-40% of food produced is wasted. There have been technology solutions - phone apps and trackers - that help people manage their diets and food waste, but there's a disconnect between the physical realm of food and the interface provided by the technology. Solutions often require the user to bridge this disconnect manually (e.g. by entering nutrition information into a phone app). Image recognition can provide a smoother interface between food and technology, making it more convenient to use and more effective.
+Food is one of the central aspects of our lives that computer software hasn't really revolutionized, and we still have a lot of problems when it comes to food. There's a growing concern about healthy eating habits -- we consume too much sugar, fats, and salt in our diets. There's also have a big problem with food waste - in America it's estimated that about 30-40% of food produced is wasted. 
+
+There have been technology solutions - phone apps and trackers - that help people manage their diets and food waste, but there's a disconnect between the physical realm of food and the interface provided by the technology. Solutions often require the user to bridge this disconnect manually (e.g. by entering nutrition information into a phone app). Image recognition can provide a smoother interface between food and technology, making it more convenient to use and more effective.
 
 In this project, I use deep learning to build a model that can recognize food items. This kind of technology may be seen in phone apps or smart fridges, helping us figure out what to do with our produce without throwing it away. I also made a simple web application to demonstrate the type of application this model can be used in. 
 
@@ -14,7 +16,7 @@ Here are the notebooks created in this project, and their functions:
 4. [application](https://github.com/jonathanshuai/springboard-capstone2/blob/master/notebooks/4-application.ipynb) - In this notebook, we apply the model to images multiple objects in them.
 
 ## Database
-The database was too big to be put on GitHub. Here's a link to download the zip from Google Drive.
+The database was too big to be put on GitHub. Here's a link to download the zip from Google Drive (not uloaded yet).
 
 These are the files associated with the dataset.
 * food-items.txt - List of food classes in alphabetical order.
