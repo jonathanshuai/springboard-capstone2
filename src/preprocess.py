@@ -1,16 +1,19 @@
 import os
-from tqdm import tqdm
+
 from contextlib import suppress
 
+import cv2
+
 import numpy as np
+
 import pandas as pd
 
-from matplotlib import pyplot as plt
-
-import cv2
 import skimage.color
-import skimage.segmentation
 import skimage.filters
+import skimage.segmentation
+
+from tqdm import tqdm
+
 
 # Get the paths to the raw image files and put them in a DataFrame
 raw_paths = []
@@ -19,7 +22,7 @@ raw_paths = []
 for root, directories, filenames in os.walk('../database/raw'):
     # Only get images (in subfolders)
     if not root == '../database/raw':
-        for filename in filenames: 
+        for filename in filenames:
             raw_paths.append(os.path.join(root, filename))
 
 
@@ -31,28 +34,29 @@ cropped_paths = [s.replace('/raw', '/cropped') for s in raw_paths]
 
 # Create a DataFrame
 df = pd.DataFrame({'raw_path': raw_paths,
-                    'label': labels,
-                    'cropped_path': cropped_paths
-                    })
+                   'label': labels,
+                   'cropped_path': cropped_paths})
 
 
 # Define functions to write, crop, and do transforms for data augmentation
 def write_image(image, path):
     """Write an image to disk.
     image      (numpy.ndarray): Image in the form of 3d array to write.
-        
-    path                 (str): Path to target location on filesystem. 
+
+    path                 (str): Path to target location on filesystem.
     """
     directory = os.path.dirname(path)
     with suppress(FileExistsError):
         os.makedirs(directory)
     cv2.imwrite(path, image)
 
+
 def get_bounding_box(image, snake_params):
     """Returns a bounding box for a crop using active contour snakes algorithm.
-    image      (numpy.ndarray): Image in the form of 3d array to find bounding box.
-    
-    snake_params        (dict): Parameters to use for skimage's active_contour. 
+    image      (numpy.ndarray): Image in the form of 3d array to find bounding
+    box.
+
+    snake_params        (dict): Parameters to use for skimage's active_contour.
     """
 
     # apply grayscale and Gaussian blur; note a=2.5 or sig=0.4472

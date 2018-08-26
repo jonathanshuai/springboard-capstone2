@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
-
-from .entity import Entity, Base
 from marshmallow import Schema, fields
+
+from sqlalchemy import Column, ForeignKey, Integer, String
+
+from .entity import Base, Entity
+
 
 class Recipe(Entity, Base):
     __tablename__ = 'recipes'
@@ -18,7 +20,6 @@ class Recipe(Entity, Base):
         self.url = url
         self.imgsrc = imgsrc
 
-        from sqlalchemy import Column, String
 
 class RecipeSchema(Schema):
     id = fields.Number()
