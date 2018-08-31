@@ -64,6 +64,7 @@ def find_recipes(file_path, options):
     print("Making predictions...")
     orig_predictions = get_items(file_path)
     print(orig_predictions)
+    predictions = orig_predictions
     if options[1][1]: # If option for vegetarian
         predictions = orig_predictions - VEGETARIAN
 
