@@ -18,7 +18,7 @@ docker-compose==1.21.2
 docker-pycreds==0.3.0
 dockerpty==0.4.1
 docopt==0.6.2
-ecdsa==0.13
+ecdsa==0.13.3
 Flask==1.0.2
 Flask-Cors==3.0.6
 Flask-Login==0.4.1
