@@ -55,7 +55,7 @@ six==1.11.0
 SQLAlchemy==1.2.10
 tabulate==0.7.5
 tensorboard==1.10.0
-tensorflow==1.10.0
+tensorflow==2.7.2
 tensorflow-hub==0.1.1
 termcolor==1.1.0
 texttable==0.9.1
